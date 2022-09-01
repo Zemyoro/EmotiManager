@@ -22,6 +22,7 @@ export function manager(guild: Guild) {
             // Backup
             case 0:
                 console.log('Refreshing emotes...');
+                await guild.emojis.fetch();
                 console.log('Loading emotes...');
 
                 const emotes = [...guild.emojis.cache.values()];
@@ -97,6 +98,13 @@ export function manager(guild: Guild) {
                         const emoteFiles = fs.readdirSync(`./backups/${guilds[parseInt(`${serverChoice.id}`) - 1].id}/${backupFiles[parseInt(`${choice.id}`) - 1]}`);
                         
                         let restored = 0;
+
+                        setTimeout(() => {
+                            if (!restored) {
+                                console.log('Your IP may be ratelimited by Discord. Come back within 30-60 Minutes.');
+                            }
+                        }, 20_000);
+
                         for (const emote of emoteFiles) {
                             await guild.emojis.create({
                                 name: emote.split('.')[0],
