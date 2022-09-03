@@ -1,6 +1,6 @@
 {
   "name": "emotimanager",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Backup, restore, and delete all emotes in a Discord server.",
   "main": "./dist/index.js",
   "scripts": {

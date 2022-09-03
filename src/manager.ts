@@ -95,7 +95,7 @@ export function manager(guild: Guild) {
                     const backupFilesDir = `./backups/${servers[parseInt(`${serverChoice.id}`) - 1].id}`;
                     const backupFiles = fs.readdirSync(backupFilesDir);
 
-                    const selectedServer: String[] = backupOptions[parseInt(`${choice.id}`) - 1];
+                    const selectedServer: String[] = backupOptions[parseInt(`${choice.id}`)];
                     selectedServer.unshift('Cancel');
 
                     return select({
