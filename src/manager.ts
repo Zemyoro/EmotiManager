@@ -156,7 +156,7 @@ export function manager(guild: Guild) {
                 const servers: Guild[] = [];
 
                 for (const transferGuild of transferGuilds) {
-                    const fetchedGuild = await guild.fetch().catch(() => null);
+                    const fetchedGuild = await transferGuild.fetch().catch(() => null);
                     if (!fetchedGuild) continue;
             
                     const me = await fetchedGuild.members.fetchMe();
@@ -172,21 +172,27 @@ export function manager(guild: Guild) {
                 require('console-clear')(true);
 
                 console.log(`Select a server (${transferValues.length})`);
+                transferValues.unshift('Cancel');
 
                 return select({
                     values: transferValues
                 }).then(TransferChoice => {
-                    const transferGuild = servers[parseInt(`${TransferChoice.id}`)];
+                    if (!TransferChoice.id) return manager(guild);
+                    const transferGuild = servers[parseInt(`${TransferChoice.id}`) - 1];
+                    require('console-clear')(true);
+
                     console.log(`Transfer server: ${transferGuild.name}`);
                     return select({
                         values: [
+                            `Cancel`,
                             `Transfer to ${transferGuild.name} from ${guild.name}`,
                             `Transfer from ${transferGuild.name} to ${guild.name}`,
                             `Transfer to ${transferGuild.name} from ${guild.name} (Delete ${transferGuild.name} current emotes)`,
                             `Transfer from ${transferGuild.name} to ${guild.name} (Delete ${guild.name} current emotes)`
                         ]
                     }).then(async TransferTypeChoice => {
-                        TransferTypeChoice.id = parseInt(`${TransferTypeChoice.id}`);
+                        if (!TransferTypeChoice.id) return manager(guild);
+                        TransferTypeChoice.id = parseInt(`${TransferTypeChoice.id}`) - 1;
 
                         switch (TransferTypeChoice.id) {
                             // Transfer to TransferGuild from CurrentGuild
@@ -230,9 +236,10 @@ export function manager(guild: Guild) {
                                         name: guildEmote.name,
                                         attachment: guildEmote.url
                                     }).then(() => {
-                                        transferred3++;
+                                        transferred2++;
                                         console.log(`Transferred ${transferred2}/${(transferGuildEmotes as GuildEmoji[]).length}`);
-                                    }).catch(() => {
+                                    }).catch((e) => {
+                                        console.log(e);
                                         console.log(`Failed to transfer "${guildEmote.name}"`);
                                     });
                                 }
@@ -250,6 +257,22 @@ export function manager(guild: Guild) {
                                 if (!guildEmotesDelete || !guildEmotesDelete.size) return retry('No emotes were found.');
                                 guildEmotesDelete = [...guildEmotesDelete.values()];
                                 let transferred3 = 0;
+
+                                let guildEmotesDeleteTransferGuild: Collection<string, GuildEmoji> | GuildEmoji[] | null = await transferGuild.emojis.fetch().catch(() => null);
+                                if (!guildEmotesDeleteTransferGuild || !guildEmotesDeleteTransferGuild.size) return retry('No emotes were found.');
+                                guildEmotesDeleteTransferGuild = [...guildEmotesDeleteTransferGuild.values()];
+
+                                for (const guildEmote of guildEmotesDeleteTransferGuild) {
+                                    if (guildEmote.deletable) {
+                                        await guildEmote.delete().then(() => {
+                                            console.log(`Successfully deleted "${guildEmote.name}" from ${transferGuild.name}`);
+                                        }).catch(() => {
+                                            console.log(`Failed to delete "${guildEmote.name}" from ${transferGuild.name}`);
+                                        });
+                                    } else {
+                                        console.log(`Failed to delete "${guildEmote.name}"`);
+                                    }
+                                }
 
                                 for (const guildEmote of guildEmotesDelete) {
                                     if (!guildEmote.name) continue;
@@ -278,13 +301,29 @@ export function manager(guild: Guild) {
                                 transferGuildEmotesDelete = [...transferGuildEmotesDelete.values()];
                                 let transferred4 = 0;
 
+                                let transferGuildEmotesDeleteGuild: Collection<string, GuildEmoji> | GuildEmoji[] | null = await guild.emojis.fetch().catch(() => null);
+                                if (!transferGuildEmotesDeleteGuild || !transferGuildEmotesDeleteGuild.size) return retry('No emotes were found.');
+                                transferGuildEmotesDeleteGuild = [...transferGuildEmotesDeleteGuild.values()];
+
+                                for (const guildEmote of transferGuildEmotesDeleteGuild) {
+                                    if (guildEmote.deletable) {
+                                        await guildEmote.delete().then(() => {
+                                            console.log(`Successfully deleted "${guildEmote.name}" from ${guild.name}`);
+                                        }).catch(() => {
+                                            console.log(`Failed to delete "${guildEmote.name}" from ${guild.name}`);
+                                        });
+                                    } else {
+                                        console.log(`Failed to delete "${guildEmote.name}"`);
+                                    }
+                                }
+
                                 for (const guildEmote of transferGuildEmotesDelete) {
                                     if (!guildEmote.name) continue;
                                     await guild.emojis.create({
                                         name: guildEmote.name,
                                         attachment: guildEmote.url
                                     }).then(() => {
-                                        transferred3++;
+                                        transferred4++;
                                         console.log(`Transferred ${transferred2}/${(transferGuildEmotes as GuildEmoji[]).length}`);
                                     }).catch(() => {
                                         console.log(`Failed to transfer "${guildEmote.name}"`);
