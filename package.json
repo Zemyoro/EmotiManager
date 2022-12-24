@@ -1,12 +1,10 @@
 {
   "name": "emotimanager",
-  "version": "2.0.1",
-  "description": "Backup, restore, and delete all emotes in a Discord server.",
+  "version": "2.1.0",
+  "description": "Backup, restore, transfer and delete all emotes in a Discord server.",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "node .",
-    "start:build": "tsc && node .",
-    "postinstall": "tsc"
+    "start": "tsc && node ."
   },
   "author": "Zemyoro + TWS_Gravity",
   "license": "UNLICENSED",
